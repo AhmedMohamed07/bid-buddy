@@ -1,40 +1,21 @@
 import { auth } from '@/auth';
-import { SignIn } from '@/components/sign-in';
-import { SignOut } from '@/components/sign-out';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+
 import { database } from '@/db/database';
-import { bids as bidsSchema, items } from '@/db/schema';
-import { revalidatePath } from 'next/cache';
+import { items } from '@/db/schema';
 
 export default async function Home() {
-  const session = await auth();
   const allItems = await database.query.items?.findMany();
   console.log(items);
   return (
-    <main className="container mx-auto">
-      {session ? <SignOut /> : <SignIn />}
-
-      {session?.user?.name}
-
-      <form
-        action={async (formData: FormData) => {
-          'use server';
-          // const bid = formData.get('bid') as string;
-          await database.insert(items).values({
-            name: formData.get('name') as string,
-            userId: session?.user?.id!,
-          });
-          revalidatePath('/');
-        }}
-      >
-        <Input name="name" placeholder="Name your item" />
-        <Button type="submit">Post Item</Button>
-      </form>
-
-      {allItems?.map((item) => (
-        <div key={item.id}>{item.name}</div>
-      ))}
+    <main className="container mx-auto py-12 space-y-8">
+      <h2 className="text-4xl font-bold">Items for Sell</h2>
+      <div className="grid grid-cols-4 gap-8">
+        {allItems?.map((item) => (
+          <div key={item.id} className="border rounded-xl p-8">
+            {item.name}${item.startingPrice / 100}
+          </div>
+        ))}
+      </div>
     </main>
   );
 }
